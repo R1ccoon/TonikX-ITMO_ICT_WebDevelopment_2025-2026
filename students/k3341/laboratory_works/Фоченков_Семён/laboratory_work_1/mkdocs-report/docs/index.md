@@ -1,12 +1,12 @@
 # Лабораторная работа 1
 
-Автор: Дементьев Антон Павлович
+Автор: Фоченков Семён Андреевич
 
 Группа: К3341
 
 Год: 2025
 
-Ссылка на отчет: https://antondementiev.github.io/TonikX-ITMO_ICT_WebDevelopment_2025-2026/
+Ссылка на отчет: https://github.com/R1ccoon/TonikX-ITMO_ICT_WebDevelopment_2025-2026/tree/main
 
 ## Цели работы
 
