@@ -6,7 +6,7 @@
 
 Год: 2025
 
-Ссылка на отчет: https://github.com/R1ccoon/TonikX-ITMO_ICT_WebDevelopment_2025-2026/tree/main
+Ссылка на отчет: https://r1ccoon.github.io/TonikX-ITMO_ICT_WebDevelopment_2025-2026/
 
 ## Цели работы
 
