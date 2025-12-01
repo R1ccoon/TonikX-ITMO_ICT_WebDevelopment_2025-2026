@@ -73,3 +73,11 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
 
+# Исключаем README файлы из документации
+exclude_docs: |
+  README.md
+  **/README.md
+  ../README.md
+  ../../README.md
+  ../../../README.md
+
