@@ -319,7 +319,7 @@ def profile(request):
     if not request.user.is_authenticated:
         return redirect('login')
     
-    user_submissions = AssignmentSubmission.objects.filter(student=request.user)
+    user_submissions = Submission.objects.filter(student=request.user)
     user_grades = Grade.objects.filter(submission__student=request.user)
     
     # Статистика по предметам
