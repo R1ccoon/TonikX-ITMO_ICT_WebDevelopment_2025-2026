@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'students/k3341/laboratory_works/Fochenkov_Semyon/laboratory_work_1/mkdocs-report/**'
+      - 'students/k3341/laboratory_works/Fochenkov_Semyon/**'
   workflow_dispatch:
 
 permissions:
@@ -28,11 +28,11 @@ jobs:
           pip install mkdocs-material
 
       - name: Build MkDocs site
-        working-directory: students/k3341/laboratory_works/Fochenkov_Semyon/laboratory_work_1/mkdocs-report
+        working-directory: students/k3341/laboratory_works/Fochenkov_Semyon
         run: mkdocs build
 
       - name: Create .nojekyll file
-        working-directory: students/k3341/laboratory_works/Fochenkov_Semyon/laboratory_work_1/mkdocs-report/site
+        working-directory: students/k3341/laboratory_works/Fochenkov_Semyon/site
         run: touch .nojekyll
 
       - name: Deploy to GitHub Pages
@@ -40,6 +40,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: students/k3341/laboratory_works/Fochenkov_Semyon/laboratory_work_1/mkdocs-report/site
+          publish_dir: students/k3341/laboratory_works/Fochenkov_Semyon/site
           cname: false
 
