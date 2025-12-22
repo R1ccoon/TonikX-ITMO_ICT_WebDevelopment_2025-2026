@@ -297,6 +297,12 @@ curl -X GET http://localhost:8000/api/printing-houses/report/ \
 - Дашборд со статистикой
 - Отчеты и аналитика
 
+### Скриншоты интерфейса
+
+![Главная панель приложения](../img/dashboard.png)
+
+![Управление газетами](../img/newspaper.png)
+
 Подробнее: [Frontend документация](frontend.md)
 
 ## Дополнительные материалы
