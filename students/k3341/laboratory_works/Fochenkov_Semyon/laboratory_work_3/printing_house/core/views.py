@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Max, Sum, Count
 from django.db.models.functions import Coalesce
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .models import (
     Newspaper, PrintingHouse, PostOffice, PrintingRun, Distribution
@@ -16,11 +18,41 @@ from .serializers import (
 
 
 class NewspaperViewSet(viewsets.ModelViewSet):
-    """ViewSet для работы с газетами"""
+    """
+    ViewSet для работы с газетами
+    
+    Требует аутентификации через Token или Session.
+    """
     queryset = Newspaper.objects.all()
     serializer_class = NewspaperSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'full_detail':
+            return NewspaperDetailSerializer
+        return NewspaperSerializer
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter(
+                'name',
+                openapi.IN_QUERY,
+                description="Название газеты (частичное совпадение)",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response('Список адресов типографий, где печатается газета'),
+            400: openapi.Response('Ошибка: параметр name обязателен'),
+            404: openapi.Response('Газета не найдена'),
+            401: openapi.Response('Требуется аутентификация'),
+        },
+        operation_summary="Поиск адресов типографий по названию газеты",
+        operation_description="Возвращает список адресов типографий, где печатаются газеты с указанным наименованием",
+        security=[{'Token': []}, {'Session': []}]
+    )
     @action(detail=False, methods=['get'])
     def by_name(self, request):
         """По каким адресам печатаются газеты данного наименования?"""
@@ -56,6 +88,32 @@ class NewspaperViewSet(viewsets.ModelViewSet):
         
         return Response(result)
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_QUERY,
+                description="ID газеты",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
+            openapi.Parameter(
+                'name',
+                openapi.IN_QUERY,
+                description="Название газеты (точное совпадение)",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+        ],
+        responses={
+            200: openapi.Response('Информация о газете'),
+            400: openapi.Response('Ошибка: необходимо указать id или name'),
+            404: openapi.Response('Газета не найдена'),
+        },
+        operation_summary="Получить информацию о газете",
+        operation_description="Возвращает индекс и цену указанной газеты по ID или названию"
+    )
     @action(detail=False, methods=['get'])
     def info(self, request):
         """Справка об индексе и цене указанной газеты"""
@@ -91,6 +149,15 @@ class NewspaperViewSet(viewsets.ModelViewSet):
             'editor': newspaper.editor_full_name
         })
 
+    @swagger_auto_schema(
+        method='get',
+        responses={
+            200: NewspaperDetailSerializer,
+            404: openapi.Response('Газета не найдена'),
+        },
+        operation_summary="Получить детальную информацию о газете",
+        operation_description="Возвращает газету с вложенными тиражами и распределениями (many-to-many через промежуточные модели)"
+    )
     @action(detail=True, methods=['get'])
     def full_detail(self, request, pk=None):
         """GET-запрос для газеты с вложенными объектами (many-to-many)
@@ -112,11 +179,29 @@ class NewspaperViewSet(viewsets.ModelViewSet):
 
 
 class PrintingHouseViewSet(viewsets.ModelViewSet):
-    """ViewSet для работы с типографиями"""
+    """
+    ViewSet для работы с типографиями
+    
+    Требует аутентификации через Token или Session.
+    """
     queryset = PrintingHouse.objects.all()
     serializer_class = PrintingHouseSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'full_detail':
+            return PrintingHouseDetailSerializer
+        return PrintingHouseSerializer
 
+    @swagger_auto_schema(
+        method='get',
+        responses={
+            200: openapi.Response('Информация о редакторе газеты с наибольшим тиражом'),
+            404: openapi.Response('Типография не найдена или в ней не печатаются газеты'),
+        },
+        operation_summary="Редактор газеты с наибольшим тиражом",
+        operation_description="Возвращает фамилию редактора газеты, которая печатается в указанной типографии самым большим тиражом"
+    )
     @action(detail=True, methods=['get'])
     def largest_circulation_editor(self, request, pk=None):
         """Фамилия редактора газеты, которая печатается в указанной типографии самым большим тиражом"""
@@ -147,6 +232,15 @@ class PrintingHouseViewSet(viewsets.ModelViewSet):
             'editor_full_name': newspaper.editor_full_name
         })
 
+    @swagger_auto_schema(
+        method='get',
+        responses={
+            200: PrintingHouseDetailSerializer,
+            404: openapi.Response('Типография не найдена'),
+        },
+        operation_summary="Получить детальную информацию о типографии",
+        operation_description="Возвращает типографию с вложенными тиражами газет (one-to-many)"
+    )
     @action(detail=True, methods=['get'])
     def full_detail(self, request, pk=None):
         """GET-запрос для типографии с вложенными тиражами (one-to-many)
@@ -164,6 +258,14 @@ class PrintingHouseViewSet(viewsets.ModelViewSet):
         serializer = PrintingHouseDetailSerializer(printing_house)
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        method='get',
+        responses={
+            200: openapi.Response('Отчет о работе типографий'),
+        },
+        operation_summary="Отчет о работе типографий",
+        operation_description="Возвращает отчет о работе активных типографий с почтовыми отделениями города"
+    )
     @action(detail=False, methods=['get'])
     def report(self, request):
         """Отчет о работе типографий с почтовыми отделениями города"""
@@ -206,11 +308,38 @@ class PrintingHouseViewSet(viewsets.ModelViewSet):
 
 
 class PostOfficeViewSet(viewsets.ModelViewSet):
-    """ViewSet для работы с почтовыми отделениями"""
+    """
+    ViewSet для работы с почтовыми отделениями
+    
+    Требует аутентификации через Token или Session.
+    """
     queryset = PostOffice.objects.all()
     serializer_class = PostOfficeSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'full_detail':
+            return PostOfficeDetailSerializer
+        return PostOfficeSerializer
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter(
+                'min_price',
+                openapi.IN_QUERY,
+                description="Минимальная цена газеты",
+                type=openapi.TYPE_NUMBER,
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response('Список почтовых отделений с газетами дороже указанной цены'),
+            400: openapi.Response('Ошибка: параметр min_price обязателен или неверный формат'),
+        },
+        operation_summary="Поиск почтовых отделений по минимальной цене газеты",
+        operation_description="Возвращает список почтовых отделений, куда поступают газеты с ценой больше указанной"
+    )
     @action(detail=False, methods=['get'])
     def by_price(self, request):
         """На какие почтовые отделения (адреса) поступает газета, имеющая цену, больше указанной"""
@@ -260,6 +389,15 @@ class PostOfficeViewSet(viewsets.ModelViewSet):
         
         return Response(result)
 
+    @swagger_auto_schema(
+        method='get',
+        responses={
+            200: PostOfficeDetailSerializer,
+            404: openapi.Response('Почтовое отделение не найдено'),
+        },
+        operation_summary="Получить детальную информацию о почтовом отделении",
+        operation_description="Возвращает почтовое отделение с вложенными распределениями газет (one-to-many)"
+    )
     @action(detail=True, methods=['get'])
     def full_detail(self, request, pk=None):
         """GET-запрос для почтового отделения с вложенными распределениями (one-to-many)
@@ -277,6 +415,24 @@ class PostOfficeViewSet(viewsets.ModelViewSet):
         serializer = PostOfficeDetailSerializer(post_office)
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter(
+                'max_quantity',
+                openapi.IN_QUERY,
+                description="Максимальное количество экземпляров",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response('Список газет с количеством меньше указанного'),
+            400: openapi.Response('Ошибка: параметр max_quantity обязателен или неверный формат'),
+        },
+        operation_summary="Поиск газет с низким количеством",
+        operation_description="Возвращает список газет и почтовых отделений, куда они поступают в количестве меньшем заданного"
+    )
     @action(detail=False, methods=['get'])
     def low_quantity(self, request):
         """Какие газеты и куда (номер почты) поступают в количестве меньшем, чем заданное"""
@@ -310,11 +466,48 @@ class PostOfficeViewSet(viewsets.ModelViewSet):
 
 
 class DistributionViewSet(viewsets.ModelViewSet):
-    """ViewSet для работы с распределениями"""
+    """
+    ViewSet для работы с распределениями
+    
+    Требует аутентификации через Token или Session.
+    """
     queryset = Distribution.objects.all()
     serializer_class = DistributionSerializer
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter(
+                'newspaper_id',
+                openapi.IN_QUERY,
+                description="ID газеты",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
+            openapi.Parameter(
+                'newspaper_name',
+                openapi.IN_QUERY,
+                description="Название газеты (точное совпадение)",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'address',
+                openapi.IN_QUERY,
+                description="Адрес типографии",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response('Список распределений газеты'),
+            400: openapi.Response('Ошибка: необходимо указать newspaper_id или newspaper_name, address обязателен'),
+            404: openapi.Response('Газета, типография или распределения не найдены'),
+        },
+        operation_summary="Поиск распределений по газете и адресу типографии",
+        operation_description="Возвращает список почтовых отделений, куда поступает указанная газета, печатающаяся по указанному адресу"
+    )
     @action(detail=False, methods=['get'])
     def by_newspaper_and_address(self, request):
         """Куда поступает данная газета, печатающаяся по данному адресу"""
