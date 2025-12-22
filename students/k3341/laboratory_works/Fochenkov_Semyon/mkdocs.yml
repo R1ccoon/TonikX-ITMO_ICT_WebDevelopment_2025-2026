@@ -45,6 +45,14 @@ nav:
     - Обзор: laboratory_work_2/index.md
     - Доска домашних заданий: laboratory_work_2/homework_board/index.md
     - Система управления автовладельцами: laboratory_work_2/tutorial/index.md
+  - Лабораторная работа 3:
+    - Обзор: laboratory_work_3/index.md
+    - Warriors API: laboratory_work_3/car_owners/index.md
+    - Printing House API: laboratory_work_3/printing_house/index.md
+  - Лабораторная работа 4:
+    - Обзор: laboratory_work_4/index.md
+    - Warriors API: laboratory_work_4/car_owners/index.md
+    - Printing House API + Frontend: laboratory_work_4/printing_house/index.md
 
 markdown_extensions:
   - pymdownx.highlight:

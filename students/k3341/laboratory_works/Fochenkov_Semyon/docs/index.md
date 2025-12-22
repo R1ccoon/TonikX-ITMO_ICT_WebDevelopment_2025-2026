@@ -10,6 +10,8 @@
 
 - [Лабораторная работа 1: Работа с сокетами](laboratory_work_1/index.md)
 - [Лабораторная работа 2: Django проекты](laboratory_work_2/index.md)
+- [Лабораторная работа 3: Django REST Framework API](laboratory_work_3/index.md)
+- [Лабораторная работа 4: Django REST Framework API + Frontend](laboratory_work_4/index.md)
 
 ---
 
